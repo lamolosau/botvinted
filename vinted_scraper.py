@@ -10,6 +10,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from datetime import datetime, timedelta
 import urllib.parse
 
+# Dictionnaires de correspondance pour les tailles, marques et couleurs
 size_dict_women = {
     'XXXS': 1226, 'XXS': 102, 'XS': 2, 'S': 3, 'M': 4, 'L': 5, 'XL': 6, 'XXL': 7, 'XXXL': 310
 }
@@ -73,9 +74,9 @@ def scrape_vinted_category(url, time_filter=False):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.binary_location = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
-    service = Service(executable_path='Z:/WebDriver/bin/chromedriver.exe')
+    service = Service(executable_path='Z:/Données/Bureau/botvinted/WebDriver/bin/chromedriver.exe')
 
-    sys.stderr = open(os.devnull, 'w')
+    # Ne pas masquer stderr
     driver = webdriver.Chrome(service=service, options=options)
     wait = WebDriverWait(driver, 10)
     items_data = []
@@ -86,6 +87,8 @@ def scrape_vinted_category(url, time_filter=False):
         while True:
             try:
                 items = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'div.new-item-box__container')))
+                print(f'Found {len(items)} items on the page.')  # Ajout d'impression de debug
+
                 for item in items:
                     try:
                         price = item.find_element(By.CSS_SELECTOR, 'p[data-testid*="price-text"]').text.strip()
@@ -117,6 +120,7 @@ def scrape_vinted_category(url, time_filter=False):
                         items_data.append({'price': price, 'size': size, 'brand': brand, 'article_url': article_url})
                         print(f'Price: {price}, Size: {size}, Brand: {brand}, Article URL: {article_url}')
                     except NoSuchElementException:
+                        print("Element not found.")
                         continue
             except TimeoutException:
                 break
@@ -132,7 +136,6 @@ def scrape_vinted_category(url, time_filter=False):
         print(f'Error: {e}')
 
     driver.quit()
-    sys.stderr = sys.__stderr__
 
 def main():
     while True:
